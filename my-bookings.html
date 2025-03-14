@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ServiceSnap | My Bookings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="navbar">
+  <div class="logo">
+    ServiceSnap <small class="byName">by Akshat Bellure</small>
+  </div>
+  <nav id="navLinks"></nav>
+  <div class="header-right">
+    <button class="sos-btn" onclick="triggerSOS()">SOS</button>
+    <span id="userGreeting"></span>
+  </div>
+</header>
+
+<section class="page-content">
+  <h1>My Bookings</h1>
+  <p>
+    Track your bookings. 
+    <br><strong>Favorites</strong> appear below if you heart (“♥”) a provider.
+    <br>You can also <strong>Report Scam</strong> if you suspect wrongdoing.
+  </p>
+  <button onclick="clearCustomerHistory()" style="margin-bottom:1rem; background:#dc3545; color:#fff; border:none; padding:0.5rem; border-radius:4px;">
+    Clear Completed History
+  </button>
+
+  <table id="myBookingsTable">
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Date/Time</th>
+        <th>Status</th>
+        <th>Provider Info</th>
+        <th>Rating</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>My Favorite Providers</h2>
+  <div id="myFavoritesList">
+    <!-- We'll show favorite providers here (placeholder) -->
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 ServiceSnap. All rights reserved.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

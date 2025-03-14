@@ -1,0 +1,296 @@
+/* Reset defaults */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, sans-serif;
+  background: #ffffff;
+  color: #001f3f;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* NAVBAR */
+.navbar {
+  background: #001f3f; 
+  color: #fff;
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  padding: 1rem 2rem;
+}
+.logo {
+  font-size: 1.5rem; 
+  font-weight: bold; 
+  color: #fff;
+}
+.byName {
+  font-weight: normal; 
+  color: #fff; 
+  font-size: 0.9rem; 
+  margin-left: 5px;
+}
+.navbar nav a {
+  margin-left: 1rem; 
+  text-decoration: none; 
+  color: #fff; 
+  font-weight: 500;
+}
+.header-right {
+  display: flex; 
+  align-items: center; 
+  gap: 1rem;
+}
+#userGreeting { 
+  font-weight: 500; 
+  color: #fff; 
+}
+
+.sos-btn {
+  background: #ff4444; 
+  color: #fff; 
+  border: none; 
+  padding: 0.5rem 1rem;
+  border-radius: 4px; 
+  cursor: pointer; 
+  font-weight: bold;
+}
+.sos-btn:hover { 
+  background: #ff0000; 
+}
+
+/* HERO */
+.hero {
+  background: #ffd6e0; 
+  padding: 3rem 2rem; 
+  text-align: center; 
+  color: #001f3f;
+}
+.hero-content { 
+  max-width: 700px; 
+  margin: 0 auto; 
+}
+.hero-content h1 { 
+  font-size: 2.5rem; 
+  margin-bottom: 1rem; 
+}
+.hero-content p { 
+  font-size: 1.1rem; 
+  margin-bottom: 2rem; 
+}
+.btn-cta {
+  background: #001f3f; 
+  color: #fff; 
+  border: none; 
+  padding: 0.7rem 1.2rem;
+  border-radius: 4px; 
+  cursor: pointer; 
+  text-decoration: none; 
+  font-weight: bold;
+}
+.btn-cta:hover { 
+  background: #001437; 
+}
+
+/* PAGE CONTENT */
+.page-content {
+  padding: 2rem; 
+  background: #fff; 
+  margin: 1rem auto;
+  border-radius: 6px; 
+  max-width: 900px;
+}
+
+/* HOW IT WORKS */
+.how-it-works {
+  background: #fff; 
+  padding: 2rem; 
+  text-align: center;
+  margin: 1rem auto; 
+  border-radius: 6px; 
+  max-width: 900px;
+}
+.how-it-works h2 { 
+  color: #001f3f; 
+  margin-bottom: 1rem; 
+}
+.steps {
+  display: flex; 
+  flex-wrap: wrap; 
+  justify-content: center; 
+  gap: 2rem;
+}
+.step {
+  background: #f9f9f9; 
+  padding: 1rem; 
+  border-radius: 6px; 
+  width: 200px;
+  transition: box-shadow 0.3s; 
+  text-align: center;
+}
+.step:hover { 
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1); 
+}
+
+/* FORMS (Login, Signup) */
+.login-container,
+.signup-container {
+  max-width: 500px; 
+  margin: 2rem auto; 
+  background: #fff;
+  padding: 2rem; 
+  border-radius: 6px;
+}
+.login-container h2, 
+.signup-container h2 {
+  margin-bottom: 1rem; 
+  text-align: center;
+}
+#loginForm, 
+#signupForm {
+  display: flex; 
+  flex-direction: column;
+}
+#loginForm input, 
+#signupForm input {
+  margin-bottom: 1rem; 
+  padding: 0.5rem;
+}
+.user-type { 
+  display: flex; 
+  gap: 1rem; 
+  margin-bottom: 1rem; 
+}
+#loginForm button, 
+#signupForm button {
+  background: #001f3f; 
+  color: #fff; 
+  border: none;
+  padding: 0.7rem; 
+  cursor: pointer; 
+  border-radius: 4px; 
+  font-weight: bold;
+}
+
+/* TABLES */
+table {
+  width: 100%; 
+  border-collapse: collapse; 
+  margin-top: 1rem;
+}
+table th, 
+table td {
+  border: 1px solid #ddd; 
+  padding: 0.5rem; 
+  text-align: left;
+}
+table button {
+  background: #001f3f; 
+  border: none; 
+  color: #fff; 
+  padding: 0.3rem 0.6rem;
+  cursor: pointer; 
+  border-radius: 4px; 
+  font-size: 0.9rem;
+}
+table button:hover { 
+  background: #001437; 
+}
+
+/* SERVICE FORM */
+.service-form {
+  display: flex; 
+  flex-direction: column; 
+  max-width: 500px; 
+  margin-top: 1rem;
+}
+.service-form label { 
+  margin-top: 1rem; 
+}
+.service-form select, 
+.service-form input {
+  padding: 0.5rem; 
+  margin-top: 0.5rem;
+}
+.service-form button {
+  margin-top: 1rem; 
+  background: #001f3f; 
+  color: #fff; 
+  border: none;
+  padding: 0.7rem; 
+  cursor: pointer; 
+  border-radius: 4px; 
+  font-weight: bold;
+}
+
+/* PROVIDER DASHBOARD */
+.dashboard-section { 
+  margin-bottom: 2rem; 
+}
+#providerProfileForm {
+  display: flex; 
+  flex-direction: column; 
+  max-width: 500px; 
+  margin-bottom: 1.5rem;
+}
+#providerProfileForm label { 
+  margin-top: 1rem; 
+}
+#providerProfileForm input,
+#providerProfileForm textarea, 
+#providerProfileForm select {
+  margin-top: 0.5rem; 
+  padding: 0.5rem;
+}
+#providerProfilePreview { 
+  margin-top: 1rem; 
+}
+
+/* TESTIMONIALS (Reviews) */
+.testimonial-grid {
+  display: flex; 
+  flex-wrap: wrap; 
+  gap: 1rem; 
+  margin-top: 1rem;
+}
+.testimonial {
+  background: #f9f9f9; 
+  border-radius: 6px; 
+  padding: 1rem; 
+  width: 300px;
+}
+.stars {
+  color: #ffcc00; 
+  font-size: 1.2rem; 
+  margin-bottom: 0.5rem;
+}
+
+/* FOOTER */
+footer {
+  background: #fff; 
+  text-align: center; 
+  padding: 1rem; 
+  margin-top: 1rem;
+  border-top: 1px solid #ddd;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column; 
+    padding: 1rem;
+  }
+  .header-right { 
+    margin-top: 0.5rem; 
+  }
+  .steps { 
+    flex-direction: column; 
+    align-items: center; 
+  }
+  .testimonial-grid {
+    flex-direction: column; 
+    align-items: center;
+  }
+}
