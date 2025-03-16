@@ -1,20 +1,9 @@
 /*************************************************************
- * script.js (Final Enhanced)
- *
- * - District & Area selection on signup
- * - AI matching by lat/lng
- * - SOS button (simulated)
- * - Favorites (♥) for customers
- * - Photo verification & pre-approval (simulateExtraRepair)
- * - Escrow + platform fee concept in "completed" status
- * - Loyalty points for customers upon completion
- * - Scam reporting (reportScam) => provider gets scamCount++
- * - Provider delisted if scamCount >= 2 or rating < 2.0
- * - All data stored in localStorage
+ * script.js (Enhanced for Extra Repair & Attachment Viewing)
  *************************************************************/
 
 /*************************************************************
- * Helper: get & set arrays in localStorage
+ * Utility: get & set arrays in localStorage
  *************************************************************/
 function getArray(key) {
   const data = localStorage.getItem(key);
@@ -25,7 +14,7 @@ function setArray(key, arr) {
 }
 
 /*************************************************************
- * Nav, Greeting, Logout
+ * Build Nav & Greeting & Logout
  *************************************************************/
 function buildNav() {
   const navLinks = document.getElementById("navLinks");
@@ -41,22 +30,22 @@ function buildNav() {
   }
 
   let html = `
-    <a href="index.html"><i class="fas fa-home"></i> Home</a>
-    <a href="book-service.html"><i class="fas fa-book"></i> Book Service</a>
-    <a href="my-bookings.html"><i class="fas fa-clipboard-list"></i> My Bookings</a>
-    <a href="provider-dashboard.html"><i class="fas fa-user-cog"></i> Provider Dashboard</a>
-    <a href="reviews.html"><i class="fas fa-star"></i> Reviews</a>
+    <a href="index.html"><i class="fa fa-home"></i> Home</a>
+    <a href="book-service.html"><i class="fa fa-book"></i> Book Service</a>
+    <a href="my-bookings.html"><i class="fa fa-clipboard-list"></i> My Bookings</a>
+    <a href="provider-dashboard.html"><i class="fa fa-user-cog"></i> Provider Dashboard</a>
+    <a href="reviews.html"><i class="fa fa-star"></i> Reviews</a>
   `;
 
   if (!isLoggedIn) {
     html += `
-      <a href="login.html"><i class="fas fa-sign-in-alt"></i> Log In</a>
-      <a href="signup.html"><i class="fas fa-user-plus"></i> Sign Up</a>
+      <a href="login.html"><i class="fa fa-sign-in-alt"></i> Log In</a>
+      <a href="signup.html"><i class="fa fa-user-plus"></i> Sign Up</a>
     `;
     if (userGreeting) userGreeting.textContent = "";
   } else {
     html += `
-      <a href="#" onclick="logoutUser()"><i class="fas fa-sign-out-alt"></i> Log Out</a>
+      <a href="#" onclick="logoutUser()"><i class="fa fa-sign-out-alt"></i> Log Out</a>
     `;
     if (userGreeting) {
       userGreeting.textContent = "Hello, " + userName;
@@ -94,38 +83,7 @@ function triggerSOS() {
 }
 
 /*************************************************************
- * AI Matching: find nearest provider by lat/lng
- *************************************************************/
-function findNearestProvider(category, custLat, custLng) {
-  let users = getArray("users");
-  // Filter providers who have coords, same mainCategory, and are not delisted
-  let possible = users.filter(u =>
-    u.userType === "provider" &&
-    !u.delisted &&
-    u.providerMainCategory &&
-    u.providerMainCategory.toLowerCase() === category.toLowerCase() &&
-    u.coords && u.coords.lat && u.coords.lng
-  );
-  if (!possible.length) {
-    return null;
-  }
-
-  let minDist = Infinity;
-  let chosen = null;
-  possible.forEach(p => {
-    let dx = (p.coords.lat - custLat);
-    let dy = (p.coords.lng - custLng);
-    let dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < minDist) {
-      minDist = dist;
-      chosen = p;
-    }
-  });
-  return chosen;
-}
-
-/*************************************************************
- * Data: subcat, district, area
+ * Subcat + District + Area data
  *************************************************************/
 const subCatMap = {
   "Electrician": ["Wiring", "Appliance Repair", "Fan Installation"],
@@ -147,10 +105,7 @@ const districtMap = {
 };
 
 const areaMap = {
-  "Bangalore": ["Yelahanka", "Kengeri", "Majestic", "Hebbal"],
-  "Mumbai": ["Andheri", "Bandra", "Juhu", "Goregaon"],
-  "Pune": ["Hinjewadi", "Kothrud", "Wakad"],
-  // etc. Add more if needed
+  "Bangalore": ["Yelahanka", "Kengeri", "Majestic", "Hebbal"]
 };
 
 /*************************************************************
@@ -163,7 +118,6 @@ function clearCustomerHistory() {
   if (currentUser.userType !== "customer") return;
 
   let bookings = getArray("bookings");
-  // Remove completed bookings for this customer
   bookings = bookings.filter(b => !(b.customerEmail === currentUser.email && b.status === "completed"));
   setArray("bookings", bookings);
   alert("Cleared your completed booking history!");
@@ -177,7 +131,6 @@ function clearProviderHistory() {
   if (currentUser.userType !== "provider") return;
 
   let bookings = getArray("bookings");
-  // Remove completed bookings for this provider
   bookings = bookings.filter(b => !(b.providerEmail === currentUser.email && b.status === "completed"));
   setArray("bookings", bookings);
   alert("Cleared your completed work history!");
@@ -241,31 +194,24 @@ document.addEventListener("DOMContentLoaded", () => {
   buildNav();
 
   /***********************************************************
-   * SIGNUP
+   * SIGNUP (Location steps)
    **********************************************************/
   const signupForm = document.getElementById("signupForm");
   if (signupForm) {
     const signupState = document.getElementById("signupState");
     const signupDistrict = document.getElementById("signupDistrict");
     const signupArea = document.getElementById("signupArea");
-    const signupCountry = document.getElementById("signupCountry");
-    const signupLanguages = document.getElementById("signupLanguages");
 
-    // If these elements exist, add event listeners
     if (signupState && signupDistrict && signupArea) {
       signupState.addEventListener("change", () => {
         signupDistrict.innerHTML = "<option value=''>-- Select District --</option>";
         signupArea.innerHTML = "<option value=''>-- Select Area --</option>";
         const st = signupState.value;
-
-        // If user picks a state not in our map, show popup & reset
-        if (st && !districtMap[st]) {
+        if (st && st !== "Karnataka") {
           notStartedPopup();
           signupState.value = "";
           return;
         }
-
-        // Otherwise, populate District
         if (districtMap[st]) {
           districtMap[st].forEach(d => {
             const opt = document.createElement("option");
@@ -279,14 +225,11 @@ document.addEventListener("DOMContentLoaded", () => {
       signupDistrict.addEventListener("change", () => {
         signupArea.innerHTML = "<option value=''>-- Select Area --</option>";
         const dist = signupDistrict.value;
-
-        // If areaMap doesn't have the district, popup or skip
-        if (dist && !areaMap[dist]) {
+        if (dist && dist !== "Bangalore") {
           notStartedPopup();
           signupDistrict.value = "";
           return;
         }
-
         if (areaMap[dist]) {
           areaMap[dist].forEach(a => {
             const opt = document.createElement("option");
@@ -294,15 +237,6 @@ document.addEventListener("DOMContentLoaded", () => {
             opt.textContent = a;
             signupArea.appendChild(opt);
           });
-        }
-      });
-
-      signupArea.addEventListener("change", () => {
-        const dist = signupDistrict.value;
-        const ar = signupArea.value;
-        if (dist && areaMap[dist] && !areaMap[dist].includes(ar)) {
-          notStartedPopup();
-          signupArea.value = "";
         }
       });
     }
@@ -313,12 +247,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const email = document.getElementById("signupEmail").value.trim();
       const password = document.getElementById("signupPassword").value.trim();
       const phone = document.getElementById("signupPhone").value.trim();
-      const country = signupCountry ? signupCountry.value.trim() : "India";
-      const languages = signupLanguages ? signupLanguages.value.trim() : "";
+      const country = document.getElementById("signupCountry").value.trim();
+      const languages = document.getElementById("signupLanguages").value.trim();
 
-      let stVal = signupState ? signupState.value : "";
-      let distVal = signupDistrict ? signupDistrict.value : "";
-      let arVal = signupArea ? signupArea.value : "";
+      let stVal = signupState.value;
+      let distVal = signupDistrict.value;
+      let arVal = signupArea.value;
 
       const roleInputs = document.getElementsByName("role");
       let userType = "";
@@ -326,13 +260,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (r.checked) userType = r.value;
       }
 
-      // Basic required check
-      if (!name || !email || !password || !phone || !userType) {
+      if (!name || !email || !password || !phone || !country || !stVal || !distVal || !arVal || !userType) {
         alert("All fields (including location) are required!");
-        return;
-      }
-      if (!country || !stVal || !distVal || !arVal) {
-        alert("Please select valid state/district/area!");
         return;
       }
 
@@ -410,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /***********************************************************
-   * BOOK SERVICE
+   * BOOK SERVICE (AI matching)
    **********************************************************/
   const mainCategory = document.getElementById("mainCategory");
   const subCategory = document.getElementById("subCategory");
@@ -458,17 +387,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // AI matching (fake coords for customer)
-    let custLat = 12.97;
+    let custLat = 12.97; 
     let custLng = 77.59;
     const chosenProvider = findNearestProvider(cat, custLat, custLng);
 
     let attachedFiles = [];
     if (bookingImages && bookingImages.files.length > 0) {
+      // read each file as base64
+      const totalFiles = bookingImages.files.length;
+      let countLoaded = 0;
+
       for (let file of bookingImages.files) {
         const reader = new FileReader();
         reader.onload = function(e) {
           attachedFiles.push({ name: file.name, data: e.target.result });
-          if (attachedFiles.length === bookingImages.files.length) {
+          countLoaded++;
+          if (countLoaded === totalFiles) {
             storeBooking(cat, subCat, dateTime, attachedFiles, currentUser, chosenProvider, bookingResult);
           }
         };
@@ -479,9 +413,38 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  function findNearestProvider(category, custLat, custLng) {
+    let users = getArray("users");
+    // Filter providers who have coords, same mainCategory, and not delisted
+    let possible = users.filter(u => 
+      u.userType === "provider" &&
+      !u.delisted &&
+      u.providerMainCategory &&
+      u.providerMainCategory.toLowerCase() === category.toLowerCase() &&
+      u.coords && u.coords.lat && u.coords.lng
+    );
+    if (!possible.length) {
+      return null;
+    }
+
+    let minDist = Infinity;
+    let chosen = null;
+    possible.forEach(p => {
+      let dx = (p.coords.lat - custLat);
+      let dy = (p.coords.lng - custLng);
+      let dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < minDist) {
+        minDist = dist;
+        chosen = p;
+      }
+    });
+    return chosen;
+  }
+
   function storeBooking(cat, subCat, dateTime, attachedFiles, currentUser, chosenProvider, bookingResult) {
     let bookings = getArray("bookings");
     let providerEmail = chosenProvider ? chosenProvider.email : null;
+
     let newBooking = {
       id: "bk" + Date.now(),
       mainCategory: cat,
@@ -490,19 +453,26 @@ document.addEventListener("DOMContentLoaded", () => {
       customerEmail: currentUser.email,
       providerEmail,
       status: providerEmail ? "accepted" : "pending",
-      attachments: attachedFiles,
+      attachments: attachedFiles,         // <-- Customer’s attachments
       ratingGiven: false,
       rating: 0,
       escrowPaid: true,
-      photoApprovalNeeded: false
+      photoApprovalNeeded: false,
+
+      // NEW FIELDS FOR EXTRA REPAIR
+      extraRepairRequested: false,
+      extraRepairAttachments: [],         // provider’s images for extra repair
+      extraRepairCost: 0,
+      extraRepairApproved: null           // can be true/false once customer decides
     };
+
     bookings.push(newBooking);
     setArray("bookings", bookings);
 
     if (providerEmail) {
       bookingResult.innerHTML = `<p style='color:green;'>Auto-matched to nearest provider: <strong>${providerEmail}</strong>. Booking <strong>accepted</strong> for <strong>${cat} - ${subCat}</strong> on <strong>${dateTime}</strong>!</p>`;
     } else {
-      bookingResult.innerHTML = `<p style='color:orange;'>No provider found with AI matching. Booking is pending. Please wait for a provider in your area!</p>`;
+      bookingResult.innerHTML = `<p style='color:orange;'>No provider found in your area. Booking is <strong>pending</strong>. Please wait for a provider to sign up in your area!</p>`;
     }
   }
 
@@ -559,33 +529,23 @@ document.addEventListener("DOMContentLoaded", () => {
     // parse existing location
     if (currentUser.location) {
       let locParts = currentUser.location.split(",").map(x => x.trim());
-      // e.g. "India, Karnataka, Bangalore, Yelahanka"
-      if (locParts.length >= 4) {
-        const stVal = locParts[1];
-        const distVal = locParts[2];
-        const areaVal = locParts[3];
-
-        if (districtMap[stVal]) {
-          profileState.value = stVal;
-          // load districts
-          districtMap[stVal].forEach(d => {
+      if (locParts.length >= 4 && locParts[1] === "Karnataka") {
+        profileState.value = "Karnataka";
+        districtMap["Karnataka"].forEach(d => {
+          const opt = document.createElement("option");
+          opt.value = d;
+          opt.textContent = d;
+          profileDistrict.appendChild(opt);
+        });
+        profileDistrict.value = locParts[2];
+        if (locParts[2] === "Bangalore") {
+          areaMap["Bangalore"].forEach(a => {
             const opt = document.createElement("option");
-            opt.value = d;
-            opt.textContent = d;
-            profileDistrict.appendChild(opt);
+            opt.value = a;
+            opt.textContent = a;
+            profileArea.appendChild(opt);
           });
-          profileDistrict.value = distVal;
-
-          // load area
-          if (areaMap[distVal]) {
-            areaMap[distVal].forEach(a => {
-              const opt = document.createElement("option");
-              opt.value = a;
-              opt.textContent = a;
-              profileArea.appendChild(opt);
-            });
-            profileArea.value = areaVal;
-          }
+          profileArea.value = locParts[3];
         }
       }
     }
@@ -628,12 +588,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       let stVal = profileState.value;
       let distVal = profileDistrict.value;
-      let arVal = profileArea.value;
-
-      // parse old location just to keep country
+      let areaVal = profileArea.value;
       let splitted = currentUser.location.split(",");
       let countryVal = splitted.length ? splitted[0].trim() : "India";
-      let finalLoc = `${countryVal}, ${stVal}, ${distVal}, ${arVal}`;
+      let finalLoc = `${countryVal}, ${stVal}, ${distVal}, ${areaVal}`;
       users[idx].location = finalLoc;
 
       users[idx].providerMainCategory = profileMainCategory.value.trim();
@@ -683,23 +641,11 @@ document.addEventListener("DOMContentLoaded", () => {
     alert(ecardMsg);
   };
 
-  window.simulateExtraRepair = function() {
-    alert("Simulating Extra Repair. We'll mark 'photoApprovalNeeded' for all accepted bookings for you.");
-    let currentUser = JSON.parse(localStorage.getItem("currentUser"));
-    let bookings = getArray("bookings");
-    bookings.forEach(b => {
-      if (b.providerEmail === currentUser.email && b.status === "accepted") {
-        b.photoApprovalNeeded = true;
-      }
-    });
-    setArray("bookings", bookings);
-    alert("All accepted bookings now require photo approval from customer.");
-  };
-
+  /***********************************************************
+   * LOAD PENDING / ACCEPTED / COMPLETED (Provider)
+   **********************************************************/
   function loadPendingBookings() {
-    const pendingBookingsTable = document.getElementById("pendingBookingsTable")
-      ? document.getElementById("pendingBookingsTable").querySelector("tbody")
-      : null;
+    const pendingBookingsTable = document.getElementById("pendingBookingsTable")?.querySelector("tbody");
     if (!pendingBookingsTable) return;
     pendingBookingsTable.innerHTML = "";
 
@@ -710,7 +656,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let allBookings = getArray("bookings");
     let relevant = allBookings.filter(b =>
       b.status === "pending" &&
-      b.mainCategory &&
       b.mainCategory.toLowerCase() === currentUser.providerMainCategory.toLowerCase()
     );
 
@@ -721,29 +666,45 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       const row = document.createElement("tr");
+
+      // SERVICE
       const tdService = document.createElement("td");
       tdService.textContent = bk.mainCategory + (bk.subCategory ? " - " + bk.subCategory : "");
 
+      // DATE
       const tdDate = document.createElement("td");
       tdDate.textContent = bk.dateTime;
 
+      // CUSTOMER
       const tdCustomer = document.createElement("td");
       tdCustomer.textContent = bk.customerEmail;
 
+      // LOCATION
       let custUser = users.find(u => u.email === bk.customerEmail);
       const tdCustLocation = document.createElement("td");
       tdCustLocation.textContent = custUser ? custUser.location : "Unknown";
 
+      // STATUS
       const tdStatus = document.createElement("td");
       tdStatus.textContent = bk.status;
 
+      // ATTACHMENTS
       const tdAttach = document.createElement("td");
       if (bk.attachments && bk.attachments.length > 0) {
-        tdAttach.textContent = bk.attachments.map(a => a.name).join(", ");
+        // create clickable links
+        bk.attachments.forEach((att, idx) => {
+          const link = document.createElement("a");
+          link.href = att.data;
+          link.target = "_blank";
+          link.textContent = att.name || `Attachment ${idx+1}`;
+          link.style.display = "block";
+          tdAttach.appendChild(link);
+        });
       } else {
         tdAttach.textContent = "None";
       }
 
+      // ACTION
       const tdAction = document.createElement("td");
       const acceptBtn = document.createElement("button");
       acceptBtn.textContent = "Accept";
@@ -770,45 +731,84 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function loadAcceptedBookings() {
-    const acceptedBookingsTable = document.getElementById("acceptedBookingsTable")
-      ? document.getElementById("acceptedBookingsTable").querySelector("tbody")
-      : null;
+    const acceptedBookingsTable = document.getElementById("acceptedBookingsTable")?.querySelector("tbody");
     if (!acceptedBookingsTable) return;
     acceptedBookingsTable.innerHTML = "";
 
-    const currentUserStr = localStorage.getItem("currentUser");
-    if (!currentUserStr) return;
-    const currentUser = JSON.parse(currentUserStr);
-
+    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
     let allBookings = getArray("bookings");
     const relevant = allBookings.filter(b => b.status === "accepted" && b.providerEmail === currentUser.email);
 
     relevant.forEach(bk => {
       const row = document.createElement("tr");
+
+      // SERVICE
       const tdService = document.createElement("td");
       tdService.textContent = bk.mainCategory + (bk.subCategory ? " - " + bk.subCategory : "");
 
+      // DATE
       const tdDate = document.createElement("td");
       tdDate.textContent = bk.dateTime;
 
+      // CUSTOMER
       const tdCustomer = document.createElement("td");
       tdCustomer.textContent = bk.customerEmail;
 
+      // STATUS
       const tdStatus = document.createElement("td");
       let statusText = bk.status;
       if (bk.photoApprovalNeeded) {
         statusText += " (Photo Pre-Approval needed)";
       }
+      if (bk.extraRepairRequested) {
+        statusText += " [Extra Repair Requested]";
+        if (bk.extraRepairApproved === true) {
+          statusText += " (Approved)";
+        } else if (bk.extraRepairApproved === false) {
+          statusText += " (Rejected)";
+        } else {
+          statusText += " (Waiting Customer Decision)";
+        }
+      }
       tdStatus.textContent = statusText;
 
+      // ATTACHMENTS
       const tdAttach = document.createElement("td");
+      // Show the original attachments
       if (bk.attachments && bk.attachments.length > 0) {
-        tdAttach.textContent = bk.attachments.map(a => a.name).join(", ");
-      } else {
+        bk.attachments.forEach((att, idx) => {
+          const link = document.createElement("a");
+          link.href = att.data;
+          link.target = "_blank";
+          link.textContent = att.name || `Attachment ${idx+1}`;
+          link.style.display = "block";
+          tdAttach.appendChild(link);
+        });
+      }
+      // Show extra repair attachments
+      if (bk.extraRepairAttachments && bk.extraRepairAttachments.length > 0) {
+        const divider = document.createElement("hr");
+        tdAttach.appendChild(divider);
+        const label = document.createElement("p");
+        label.textContent = "Extra Repair Files:";
+        tdAttach.appendChild(label);
+
+        bk.extraRepairAttachments.forEach((att, idx) => {
+          const link = document.createElement("a");
+          link.href = att.data;
+          link.target = "_blank";
+          link.textContent = att.name || `ExtraRepair ${idx+1}`;
+          link.style.display = "block";
+          tdAttach.appendChild(link);
+        });
+      }
+      if (!bk.attachments?.length && !bk.extraRepairAttachments?.length) {
         tdAttach.textContent = "None";
       }
 
+      // ACTION
       const tdAction = document.createElement("td");
+      // "Mark Completed" + "Reject"
       const completeBtn = document.createElement("button");
       completeBtn.textContent = "Mark Completed";
       completeBtn.style.marginRight = "5px";
@@ -821,6 +821,16 @@ document.addEventListener("DOMContentLoaded", () => {
       tdAction.appendChild(completeBtn);
       tdAction.appendChild(rejectBtn);
 
+      // Also a button to "Request Extra Repair" if not done yet
+      if (!bk.extraRepairRequested) {
+        const extraBtn = document.createElement("button");
+        extraBtn.textContent = "Request Extra Repair";
+        extraBtn.style.marginTop = "5px";
+        extraBtn.onclick = () => showExtraRepairModal(bk.id);
+        tdAction.appendChild(document.createElement("br"));
+        tdAction.appendChild(extraBtn);
+      }
+
       row.appendChild(tdService);
       row.appendChild(tdDate);
       row.appendChild(tdCustomer);
@@ -832,10 +842,62 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // SIMULATE EXTRA REPAIR: For *all* accepted bookings
+  // (We changed approach: now we do a per-booking request with a file input)
+  window.simulateExtraRepair = function() {
+    alert("This button is now replaced by per-booking 'Request Extra Repair' buttons.");
+  };
+
+  // Show a simple prompt or create a small modal for uploading extra repair attachments
+  window.showExtraRepairModal = function(bookingId) {
+    const cost = prompt("Enter Extra Repair Estimated Cost (₹):", "200");
+    if (!cost) return;
+
+    // Let provider pick images
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*,video/*";
+    fileInput.multiple = true;
+    fileInput.onchange = function(e) {
+      const files = e.target.files;
+      if (!files || !files.length) {
+        alert("No files chosen!");
+        return;
+      }
+      // read them
+      let loadedCount = 0;
+      let attachments = [];
+      for (let file of files) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          attachments.push({ name: file.name, data: ev.target.result });
+          loadedCount++;
+          if (loadedCount === files.length) {
+            applyExtraRepair(bookingId, cost, attachments);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    // trigger the file input
+    fileInput.click();
+  };
+
+  function applyExtraRepair(bookingId, cost, attachments) {
+    let bookings = getArray("bookings");
+    let idx = bookings.findIndex(b => b.id === bookingId);
+    if (idx < 0) return;
+    bookings[idx].extraRepairRequested = true;
+    bookings[idx].extraRepairCost = parseInt(cost) || 0;
+    bookings[idx].extraRepairAttachments = attachments;
+    bookings[idx].extraRepairApproved = null; // waiting for customer
+    setArray("bookings", bookings);
+    alert("Extra repair requested! Customer must accept or reject. Reloading...");
+    loadAcceptedBookings();
+  }
+
   function loadCompletedBookings() {
-    const completedBookingsTable = document.getElementById("completedBookingsTable")
-      ? document.getElementById("completedBookingsTable").querySelector("tbody")
-      : null;
+    const completedBookingsTable = document.getElementById("completedBookingsTable")?.querySelector("tbody");
     if (!completedBookingsTable) return;
     completedBookingsTable.innerHTML = "";
 
@@ -858,9 +920,36 @@ document.addEventListener("DOMContentLoaded", () => {
       tdCustomer.textContent = bk.customerEmail;
 
       const tdAttach = document.createElement("td");
+      let hasAny = false;
       if (bk.attachments && bk.attachments.length > 0) {
-        tdAttach.textContent = bk.attachments.map(a => a.name).join(", ");
-      } else {
+        hasAny = true;
+        bk.attachments.forEach((att, idx) => {
+          const link = document.createElement("a");
+          link.href = att.data;
+          link.target = "_blank";
+          link.textContent = att.name || `Attachment ${idx+1}`;
+          link.style.display = "block";
+          tdAttach.appendChild(link);
+        });
+      }
+      if (bk.extraRepairAttachments && bk.extraRepairAttachments.length > 0) {
+        hasAny = true;
+        const divider = document.createElement("hr");
+        tdAttach.appendChild(divider);
+        const label = document.createElement("p");
+        label.textContent = "Extra Repair Files:";
+        tdAttach.appendChild(label);
+
+        bk.extraRepairAttachments.forEach((att, idx) => {
+          const link = document.createElement("a");
+          link.href = att.data;
+          link.target = "_blank";
+          link.textContent = att.name || `ExtraRepair ${idx+1}`;
+          link.style.display = "block";
+          tdAttach.appendChild(link);
+        });
+      }
+      if (!hasAny) {
         tdAttach.textContent = "None";
       }
 
@@ -892,11 +981,11 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (newStatus === "rejected") {
         bookings[idx].providerEmail = null;
       } else if (newStatus === "completed") {
-        // Escrow release, platform fee note, add loyalty points
+        // Escrow release, add loyalty points
         const currentUser = JSON.parse(localStorage.getItem("currentUser"));
         let providerBaseRate = currentUser.baseRate || 0;
-        let finalPay = Math.floor(providerBaseRate * 0.9); // 10% platform fee
-        alert(`Booking completed! Provider receives ~₹${finalPay} after platform fee. Escrow released.`);
+        let finalPay = Math.floor(providerBaseRate * 0.9); // 10% fee
+        alert(`Booking completed! Provider receives ~₹${finalPay} after platform fee.`);
 
         const custEmail = bookings[idx].customerEmail;
         let users = getArray("users");
@@ -916,7 +1005,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /***********************************************************
-   * MY BOOKINGS (Customer)
+   * MY BOOKINGS (Customer) - see extra repair, accept/reject
    **********************************************************/
   if (document.getElementById("myBookingsTable")) {
     const myBookingsTable = document.getElementById("myBookingsTable").querySelector("tbody");
@@ -943,19 +1032,33 @@ document.addEventListener("DOMContentLoaded", () => {
       userBookings.forEach(bk => {
         const row = document.createElement("tr");
 
+        // SERVICE
         const tdService = document.createElement("td");
         tdService.textContent = bk.mainCategory + (bk.subCategory ? " - " + bk.subCategory : "");
 
+        // DATE
         const tdDate = document.createElement("td");
         tdDate.textContent = bk.dateTime;
 
+        // STATUS
         let statusText = bk.status;
         if (bk.photoApprovalNeeded) {
           statusText += " (Provider requests photo approval!)";
         }
+        if (bk.extraRepairRequested) {
+          statusText += " [Extra Repair Requested: ₹" + bk.extraRepairCost + "]";
+          if (bk.extraRepairApproved === true) {
+            statusText += " (Approved)";
+          } else if (bk.extraRepairApproved === false) {
+            statusText += " (Rejected)";
+          } else {
+            statusText += " (Decide below)";
+          }
+        }
         const tdStatus = document.createElement("td");
         tdStatus.textContent = statusText;
 
+        // PROVIDER INFO
         const tdProviderInfo = document.createElement("td");
         if (bk.providerEmail && (bk.status === "accepted" || bk.status === "completed")) {
           let providerUser = users.find(u => u.email === bk.providerEmail);
@@ -992,7 +1095,7 @@ document.addEventListener("DOMContentLoaded", () => {
           tdProviderInfo.textContent = "No provider assigned or not accepted yet.";
         }
 
-        // Rating cell
+        // RATING or ExtraRepair Decision
         const tdRating = document.createElement("td");
         if (bk.status === "completed" && bk.providerEmail) {
           if (!bk.ratingGiven) {
@@ -1016,6 +1119,41 @@ document.addEventListener("DOMContentLoaded", () => {
           tdRating.textContent = "N/A";
         }
 
+        // If there's an extra repair request pending approval:
+        if (bk.extraRepairRequested && bk.extraRepairApproved === null && bk.status !== "completed") {
+          const br = document.createElement("br");
+          tdRating.appendChild(br);
+
+          const label = document.createElement("p");
+          label.textContent = `Extra Repair Cost: ₹${bk.extraRepairCost}`;
+          tdRating.appendChild(label);
+
+          // Show attachments from provider for extra repair
+          if (bk.extraRepairAttachments && bk.extraRepairAttachments.length > 0) {
+            bk.extraRepairAttachments.forEach((att, idx) => {
+              const link = document.createElement("a");
+              link.href = att.data;
+              link.target = "_blank";
+              link.textContent = att.name || `ExtraRepair ${idx+1}`;
+              link.style.display = "block";
+              tdRating.appendChild(link);
+            });
+          }
+
+          // Buttons: Accept / Reject
+          const acceptBtn = document.createElement("button");
+          acceptBtn.textContent = "Accept Extra Repair";
+          acceptBtn.style.marginRight = "5px";
+          acceptBtn.onclick = () => decideExtraRepair(bk.id, true);
+
+          const rejectBtn = document.createElement("button");
+          rejectBtn.textContent = "Reject Extra Repair";
+          rejectBtn.onclick = () => decideExtraRepair(bk.id, false);
+
+          tdRating.appendChild(acceptBtn);
+          tdRating.appendChild(rejectBtn);
+        }
+
         row.appendChild(tdService);
         row.appendChild(tdDate);
         row.appendChild(tdStatus);
@@ -1026,6 +1164,16 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       loadFavorites(currentUser);
+    }
+
+    function decideExtraRepair(bookingId, approve) {
+      let bookings = getArray("bookings");
+      let idx = bookings.findIndex(b => b.id === bookingId);
+      if (idx < 0) return;
+      bookings[idx].extraRepairApproved = approve;
+      setArray("bookings", bookings);
+      alert("Extra repair " + (approve ? "ACCEPTED" : "REJECTED"));
+      loadMyBookings();
     }
 
     window.addToFavorites = function(providerEmail) {
@@ -1103,7 +1251,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
           pUser.ratingCount = newCount;
           pUser.rating = newRating;
-          checkProviderDelistByRating(pUser); // auto-delist if < 2.0
+          checkProviderDelistByRating(pUser);
           users[provIdx] = pUser;
         }
       }
